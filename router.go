@@ -3,7 +3,6 @@ package mix
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"regexp"
 )
 
@@ -19,10 +18,7 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		ok, params := route.Match(req.Method, req.URL.Path)
 		if ok {
-			// Add Params
-			if len(params) > 0 {
-				req.URL.RawQuery = url.Values(params).Encode() + "&" + req.URL.RawQuery
-			}
+			setParams(req, params)
 			route.ServeHTTP(rw, req)
 			return
 		}
@@ -85,17 +81,17 @@ type Route struct {
 	handler http.HandlerFunc
 }
 
-func (r *Route) Match(method, path string) (bool, url.Values) {
+func (r *Route) Match(method, path string) (bool, Params) {
 	if !r.MatchMethod(method) {
 		return false, nil
 	}
 
 	matches := r.regex.FindStringSubmatch(path)
 	if len(matches) > 0 && matches[0] == path {
-		params := url.Values{}
+		params := Params{}
 		for i, name := range r.regex.SubexpNames() {
 			if len(name) > 0 {
-				params.Add(name, matches[i])
+				params[name] = matches[i]
 			}
 		}
 		return true, params

@@ -21,8 +21,8 @@ func TestBasicRouting(t *testing.T) {
 func TestBasicParams(t *testing.T) {
 	m := mix.New()
 	m.Get("/pages/:pageId/events/:id", func(rw http.ResponseWriter, r *http.Request) {
-		params := r.URL.Query()
-		fmt.Fprint(rw, params.Get("pageId"), params.Get("id"))
+		params := mix.GetParams(r)
+		fmt.Fprint(rw, params["pageId"], params["id"])
 	})
 
 	res := req(m, "GET", "/pages/123/events/456/")
