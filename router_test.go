@@ -18,6 +18,15 @@ func TestBasicRouting(t *testing.T) {
 	equals(t, "Hello World", req(m, "GET", "/").Body.String())
 }
 
+func TestSlashPathsRouting(t *testing.T) {
+	m := mix.New()
+	m.Get("/hello/world", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Write([]byte("Hello World"))
+	})
+
+	equals(t, "Hello World", req(m, "GET", "/hello/world/").Body.String())
+}
+
 func TestBasicParams(t *testing.T) {
 	m := mix.New()
 	m.Get("/pages/:pageId/events/:id", func(rw http.ResponseWriter, r *http.Request) {

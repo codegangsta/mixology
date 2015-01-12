@@ -14,8 +14,9 @@ func New() *Router {
 }
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	path := r.tokenize(req.URL.Path)
 	for _, route := range r.routes {
-		ok, params := route.Match2(req.Method, req.URL.Path)
+		ok, params := route.Match(req.Method, path)
 		if ok {
 			setParams(req, params)
 			route.ServeHTTP(rw, req)
@@ -69,8 +70,17 @@ func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Rou
 	// pattern += `\/?`
 	// route.regex = regexp.MustCompile(pattern)
 
-	route.tokens = strings.Split(pattern, "/")[1:]
+	route.tokens = r.tokenize(pattern)
 
 	r.routes = append(r.routes, route)
 	return route
+}
+
+func (r *Router) tokenize(path string) []string {
+	last := len(path) - 1
+	if path[last] == '/' {
+		path = path[:last]
+	}
+	tokens := strings.Split(path, "/")[1:]
+	return tokens
 }
