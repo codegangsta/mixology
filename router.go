@@ -71,7 +71,7 @@ func (r *Route) Match(method, path string) (bool, url.Values) {
 		params := url.Values{}
 		for i, name := range r.regex.SubexpNames() {
 			if len(name) > 0 {
-				params[name] = append(params[name], matches[i])
+				params.Add(name, matches[i])
 			}
 		}
 		return true, params
