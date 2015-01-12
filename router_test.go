@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/codegangsta/mix"
+	"github.com/codegangsta/negroni"
 )
 
 func TestBasicRouting(t *testing.T) {
@@ -100,6 +101,24 @@ func TestNestedGroup(t *testing.T) {
 	equals(t, "pages route", res.Body.String())
 	res = req(m, "GET", "/one/two/events")
 	equals(t, "events route", res.Body.String())
+}
+
+func TestGroupMiddleware(t *testing.T) {
+	m := mix.New()
+
+	auth := func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		fmt.Fprint(rw, "middleware ")
+		next(rw, r)
+	}
+
+	m.Group("/admin", func(r *mix.Router) {
+		r.Get("/foo", func(rw http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(rw, "foo route")
+		})
+	}, negroni.HandlerFunc(auth))
+
+	res := req(m, "GET", "/admin/foo")
+	equals(t, "middleware foo route", res.Body.String())
 }
 
 func req(handler http.Handler, method, path string) *httptest.ResponseRecorder {

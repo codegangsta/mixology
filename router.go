@@ -3,11 +3,17 @@ package mix
 import (
 	"net/http"
 	"strings"
+
+	"github.com/codegangsta/negroni"
 )
 
 type Router struct {
 	routes []*Route
-	groups []string
+	groups []group
+}
+
+type Middleware interface {
+	ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc)
 }
 
 func New() *Router {
@@ -50,15 +56,36 @@ func (r *Router) Delete(path string, handler http.HandlerFunc) {
 	r.addRoute("DELETE", path, handler)
 }
 
-func (r *Router) Group(pattern string, fn func(r *Router)) {
-	r.groups = append(r.groups, r.sanitize(pattern))
+func (r *Router) Group(pattern string, fn func(r *Router), middleware ...Middleware) {
+	g := group{pattern: r.sanitize(pattern)}
+	for _, m := range middleware {
+		g.middlewares = append(g.middlewares, m)
+	}
+	r.groups = append(r.groups, g)
+
 	fn(r)
 	r.groups = r.groups[:len(r.groups)-1]
 }
 
+type group struct {
+	pattern     string
+	middlewares []negroni.Handler
+}
+
 func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Route {
+	// sanitize pattern
+	pattern = r.sanitize(pattern)
+
+	// Nesting groups
 	if len(r.groups) > 0 {
-		pattern = strings.Join(r.groups, "/") + pattern
+		ln := len(r.groups)
+		for i := range r.groups {
+			g := r.groups[ln-1-i]
+			pattern = g.pattern + "/" + pattern
+			n := negroni.New(g.middlewares...)
+			n.UseHandler(handler)
+			handler = n.ServeHTTP
+		}
 	}
 
 	route := &Route{
@@ -80,7 +107,7 @@ func (r *Router) tokenize(path string) []string {
 // Manually trimming strings for performance reasons
 func (r *Router) sanitize(path string) string {
 	last := len(path) - 1
-	if path[last] == '/' {
+	if last >= 0 && path[last] == '/' {
 		path = path[:last]
 		last--
 	}
