@@ -30,7 +30,7 @@ func TestSlashPathsRouting(t *testing.T) {
 func TestBasicParams(t *testing.T) {
 	m := mix.New()
 	m.Get("/pages/:pageId/events/:id", func(rw http.ResponseWriter, r *http.Request) {
-		params := mix.GetParams(r)
+		params := mix.Params(r)
 		fmt.Fprint(rw, params["pageId"], params["id"])
 	})
 

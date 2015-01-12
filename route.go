@@ -13,7 +13,7 @@ type Route struct {
 	tokens  []string
 }
 
-func (r *Route) Match(method string, tokens []string) (bool, Params) {
+func (r *Route) Match(method string, tokens []string) (bool, map[string]string) {
 	if !r.MatchMethod(method) {
 		return false, nil
 	}
