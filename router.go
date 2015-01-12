@@ -1,9 +1,8 @@
 package mix
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
+	"strings"
 )
 
 type Router struct {
@@ -16,7 +15,7 @@ func New() *Router {
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
-		ok, params := route.Match(req.Method, req.URL.Path)
+		ok, params := route.Match2(req.Method, req.URL.Path)
 		if ok {
 			setParams(req, params)
 			route.ServeHTTP(rw, req)
@@ -57,52 +56,21 @@ func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Rou
 	}
 
 	// Grab the /:name/ params a sub with a regex
-	regex := regexp.MustCompile(`:[^/#?()\.\\]+`)
-	pattern = regex.ReplaceAllStringFunc(pattern, func(m string) string {
-		return fmt.Sprintf(`(?P<%s>[^/#?]+)`, m[1:])
-	})
+	// regex := regexp.MustCompile(`:[^/#?()\.\\]+`)
+	// pattern = regex.ReplaceAllStringFunc(pattern, func(m string) string {
+	// 	return fmt.Sprintf(`(?P<%s>[^/#?]+)`, m[1:])
+	// })
 	// r2 := regexp.MustCompile(`\*\*`)
 	// var index int
 	// pattern = r2.ReplaceAllStringFunc(pattern, func(m string) string {
 	// 	index++
 	// 	return fmt.Sprintf(`(?P<_%d>[^#?]*)`, index)
 	// })
-	pattern += `\/?`
-	route.regex = regexp.MustCompile(pattern)
+	// pattern += `\/?`
+	// route.regex = regexp.MustCompile(pattern)
+
+	route.tokens = strings.Split(pattern, "/")[1:]
 
 	r.routes = append(r.routes, route)
 	return route
-}
-
-type Route struct {
-	method  string
-	regex   *regexp.Regexp
-	pattern string
-	handler http.HandlerFunc
-}
-
-func (r *Route) Match(method, path string) (bool, Params) {
-	if !r.MatchMethod(method) {
-		return false, nil
-	}
-
-	matches := r.regex.FindStringSubmatch(path)
-	if len(matches) > 0 && matches[0] == path {
-		params := Params{}
-		for i, name := range r.regex.SubexpNames() {
-			if len(name) > 0 {
-				params[name] = matches[i]
-			}
-		}
-		return true, params
-	}
-	return false, nil
-}
-
-func (r *Route) MatchMethod(method string) bool {
-	return r.method == "*" || method == r.method || (method == "HEAD" && r.method == "GET")
-}
-
-func (r *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	r.handler.ServeHTTP(rw, req)
 }

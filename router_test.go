@@ -25,7 +25,7 @@ func TestBasicParams(t *testing.T) {
 		fmt.Fprint(rw, params["pageId"], params["id"])
 	})
 
-	res := req(m, "GET", "/pages/123/events/456/")
+	res := req(m, "GET", "/pages/123/events/456")
 	equals(t, "123456", res.Body.String())
 }
 
