@@ -15,12 +15,7 @@ func TestBasicRouting(t *testing.T) {
 		rw.Write([]byte("Hello World"))
 	})
 
-	req, _ := http.NewRequest("GET", "/", nil)
-	res := httptest.NewRecorder()
-
-	m.ServeHTTP(res, req)
-
-	equals(t, "Hello World", res.Body.String())
+	equals(t, "Hello World", req(m, "GET", "/").Body.String())
 }
 
 func TestBasicParams(t *testing.T) {
@@ -30,10 +25,14 @@ func TestBasicParams(t *testing.T) {
 		fmt.Fprint(rw, params.Get("pageId"), params.Get("id"))
 	})
 
-	req, _ := http.NewRequest("GET", "/pages/123/events/456/", nil)
-	res := httptest.NewRecorder()
-
-	m.ServeHTTP(res, req)
-
+	res := req(m, "GET", "/pages/123/events/456/")
 	equals(t, "123456", res.Body.String())
+}
+
+func req(handler http.Handler, method, path string) *httptest.ResponseRecorder {
+	r, _ := http.NewRequest(method, path, nil)
+	rw := httptest.NewRecorder()
+
+	handler.ServeHTTP(rw, r)
+	return rw
 }
