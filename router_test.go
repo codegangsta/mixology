@@ -68,6 +68,40 @@ func TestHead(t *testing.T) {
 	equals(t, "GET", req(m, "HEAD", "/").Body.String())
 }
 
+func TestGroup(t *testing.T) {
+	m := mix.New()
+	m.Group("/admin", func(r *mix.Router) {
+		r.Get("/pages", func(rw http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(rw, "pages route")
+		})
+		r.Get("/events/:id", func(rw http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(rw, mix.Params(r)["id"])
+		})
+	})
+	res := req(m, "GET", "/admin/pages")
+	equals(t, "pages route", res.Body.String())
+	res = req(m, "GET", "/admin/events/123")
+	equals(t, "123", res.Body.String())
+}
+
+func TestNestedGroup(t *testing.T) {
+	m := mix.New()
+	m.Group("/one", func(r *mix.Router) {
+		m.Group("/two", func(r *mix.Router) {
+			r.Get("/pages", func(rw http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(rw, "pages route")
+			})
+			r.Get("/events", func(rw http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(rw, "events route")
+			})
+		})
+	})
+	res := req(m, "GET", "/one/two/pages")
+	equals(t, "pages route", res.Body.String())
+	res = req(m, "GET", "/one/two/events")
+	equals(t, "events route", res.Body.String())
+}
+
 func req(handler http.Handler, method, path string) *httptest.ResponseRecorder {
 	r, _ := http.NewRequest(method, path, nil)
 	rw := httptest.NewRecorder()

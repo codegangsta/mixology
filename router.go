@@ -7,6 +7,7 @@ import (
 
 type Router struct {
 	routes []*Route
+	groups []string
 }
 
 func New() *Router {
@@ -49,26 +50,22 @@ func (r *Router) Delete(path string, handler http.HandlerFunc) {
 	r.addRoute("DELETE", path, handler)
 }
 
+func (r *Router) Group(pattern string, fn func(r *Router)) {
+	r.groups = append(r.groups, r.sanitize(pattern))
+	fn(r)
+	r.groups = r.groups[:len(r.groups)-1]
+}
+
 func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Route {
+	if len(r.groups) > 0 {
+		pattern = strings.Join(r.groups, "/") + pattern
+	}
+
 	route := &Route{
 		method:  method,
 		pattern: pattern,
 		handler: handler,
 	}
-
-	// Grab the /:name/ params a sub with a regex
-	// regex := regexp.MustCompile(`:[^/#?()\.\\]+`)
-	// pattern = regex.ReplaceAllStringFunc(pattern, func(m string) string {
-	// 	return fmt.Sprintf(`(?P<%s>[^/#?]+)`, m[1:])
-	// })
-	// r2 := regexp.MustCompile(`\*\*`)
-	// var index int
-	// pattern = r2.ReplaceAllStringFunc(pattern, func(m string) string {
-	// 	index++
-	// 	return fmt.Sprintf(`(?P<_%d>[^#?]*)`, index)
-	// })
-	// pattern += `\/?`
-	// route.regex = regexp.MustCompile(pattern)
 
 	route.tokens = r.tokenize(pattern)
 
@@ -77,10 +74,18 @@ func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Rou
 }
 
 func (r *Router) tokenize(path string) []string {
+	return strings.Split(r.sanitize(path), "/")[1:]
+}
+
+// Manually trimming strings for performance reasons
+func (r *Router) sanitize(path string) string {
 	last := len(path) - 1
 	if path[last] == '/' {
 		path = path[:last]
+		last--
 	}
-	tokens := strings.Split(path, "/")[1:]
-	return tokens
+	if last >= 0 && path[0] == '/' {
+		path = path[1:]
+	}
+	return path
 }
