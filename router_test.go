@@ -29,6 +29,36 @@ func TestBasicParams(t *testing.T) {
 	equals(t, "123456", res.Body.String())
 }
 
+func TestMethods(t *testing.T) {
+	m := mix.New()
+
+	fn := func(name string) http.HandlerFunc {
+		return func(rw http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(rw, "method: ", name)
+		}
+	}
+
+	m.Get("/", fn("GET"))
+	m.Post("/", fn("POST"))
+	m.Put("/", fn("PUT"))
+	m.Patch("/", fn("PATCH"))
+	m.Option("/", fn("OPTION"))
+	m.Delete("/", fn("DELETE"))
+
+	for _, method := range []string{"GET", "POST", "PUT", "PATCH", "OPTION", "DELETE"} {
+		equals(t, "method: "+method, req(m, method, "/").Body.String())
+	}
+}
+
+func TestHead(t *testing.T) {
+	m := mix.New()
+	m.Get("/", func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(rw, "GET")
+	})
+
+	equals(t, "GET", req(m, "HEAD", "/").Body.String())
+}
+
 func req(handler http.Handler, method, path string) *httptest.ResponseRecorder {
 	r, _ := http.NewRequest(method, path, nil)
 	rw := httptest.NewRecorder()

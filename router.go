@@ -33,6 +33,26 @@ func (r *Router) Get(path string, handler http.HandlerFunc) {
 	r.addRoute("GET", path, handler)
 }
 
+func (r *Router) Post(path string, handler http.HandlerFunc) {
+	r.addRoute("POST", path, handler)
+}
+
+func (r *Router) Put(path string, handler http.HandlerFunc) {
+	r.addRoute("PUT", path, handler)
+}
+
+func (r *Router) Patch(path string, handler http.HandlerFunc) {
+	r.addRoute("PATCH", path, handler)
+}
+
+func (r *Router) Option(path string, handler http.HandlerFunc) {
+	r.addRoute("OPTION", path, handler)
+}
+
+func (r *Router) Delete(path string, handler http.HandlerFunc) {
+	r.addRoute("DELETE", path, handler)
+}
+
 func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Route {
 	route := &Route{
 		method:  method,
@@ -66,6 +86,10 @@ type Route struct {
 }
 
 func (r *Route) Match(method, path string) (bool, url.Values) {
+	if !r.MatchMethod(method) {
+		return false, nil
+	}
+
 	matches := r.regex.FindStringSubmatch(path)
 	if len(matches) > 0 && matches[0] == path {
 		params := url.Values{}
@@ -77,6 +101,10 @@ func (r *Route) Match(method, path string) (bool, url.Values) {
 		return true, params
 	}
 	return false, nil
+}
+
+func (r *Route) MatchMethod(method string) bool {
+	return r.method == "*" || method == r.method || (method == "HEAD" && r.method == "GET")
 }
 
 func (r *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
