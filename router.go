@@ -101,7 +101,7 @@ func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Rou
 }
 
 func (r *Router) tokenize(path string) []string {
-	return strings.Split(r.sanitize(path), "/")[1:]
+	return strings.Split(r.sanitize(path), "/")
 }
 
 // Manually trimming strings for performance reasons
