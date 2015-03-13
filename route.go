@@ -1,14 +1,11 @@
 package mix
 
-import (
-	"net/http"
-	"regexp"
-)
+import "net/http"
 
 type Route struct {
 	method  string
-	regex   *regexp.Regexp
 	pattern string
+	name    string
 	handler http.HandlerFunc
 	tokens  []string
 }
@@ -47,4 +44,8 @@ func (r *Route) MatchMethod(method string) bool {
 
 func (r *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	r.handler.ServeHTTP(rw, req)
+}
+
+func (r *Route) Name(name string) {
+	r.name = name
 }

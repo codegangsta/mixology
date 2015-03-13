@@ -1,16 +1,18 @@
 package mix
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/codegangsta/negroni"
 )
 
 type Router struct {
-	routes []*Route
 	groups []group
 
+	Routes   []*Route
 	NotFound http.HandlerFunc
 }
 
@@ -24,7 +26,7 @@ func New() *Router {
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	path := r.tokenize(req.URL.Path)
-	for _, route := range r.routes {
+	for _, route := range r.Routes {
 		ok, params := route.Match(req.Method, path)
 		if ok {
 			setParams(req, params)
@@ -36,28 +38,37 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	r.NotFound(rw, req)
 }
 
-func (r *Router) Get(path string, handler http.HandlerFunc) {
-	r.addRoute("GET", path, handler)
+func (r *Router) List(rw http.ResponseWriter, req *http.Request) {
+	tw := tabwriter.NewWriter(rw, 0, 8, 1, '\t', 0)
+	fmt.Fprintf(tw, "%v\t%v\t%v\n", "Method", "Pattern", "Name")
+	for _, route := range r.Routes {
+		fmt.Fprintf(tw, "%v\t/%v\t%v\n", route.method, route.pattern, route.name)
+	}
+	tw.Flush()
 }
 
-func (r *Router) Post(path string, handler http.HandlerFunc) {
-	r.addRoute("POST", path, handler)
+func (r *Router) Get(path string, handler http.HandlerFunc) *Route {
+	return r.addRoute("GET", path, handler)
 }
 
-func (r *Router) Put(path string, handler http.HandlerFunc) {
-	r.addRoute("PUT", path, handler)
+func (r *Router) Post(path string, handler http.HandlerFunc) *Route {
+	return r.addRoute("POST", path, handler)
 }
 
-func (r *Router) Patch(path string, handler http.HandlerFunc) {
-	r.addRoute("PATCH", path, handler)
+func (r *Router) Put(path string, handler http.HandlerFunc) *Route {
+	return r.addRoute("PUT", path, handler)
 }
 
-func (r *Router) Option(path string, handler http.HandlerFunc) {
-	r.addRoute("OPTION", path, handler)
+func (r *Router) Patch(path string, handler http.HandlerFunc) *Route {
+	return r.addRoute("PATCH", path, handler)
 }
 
-func (r *Router) Delete(path string, handler http.HandlerFunc) {
-	r.addRoute("DELETE", path, handler)
+func (r *Router) Option(path string, handler http.HandlerFunc) *Route {
+	return r.addRoute("OPTION", path, handler)
+}
+
+func (r *Router) Delete(path string, handler http.HandlerFunc) *Route {
+	return r.addRoute("DELETE", path, handler)
 }
 
 func (r *Router) Group(pattern string, fn func(r *Router), middleware ...Middleware) {
@@ -100,7 +111,7 @@ func (r *Router) addRoute(method, pattern string, handler http.HandlerFunc) *Rou
 
 	route.tokens = r.tokenize(pattern)
 
-	r.routes = append(r.routes, route)
+	r.Routes = append(r.Routes, route)
 	return route
 }
 
