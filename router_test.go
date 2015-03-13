@@ -121,6 +121,14 @@ func TestGroupMiddleware(t *testing.T) {
 	equals(t, "middleware foo route", res.Body.String())
 }
 
+func TestDefaultNotFound(t *testing.T) {
+	m := mix.New()
+
+	res := req(m, "GET", "/not-here")
+	equals(t, 404, res.Code)
+	equals(t, "404 page not found\n", res.Body.String())
+}
+
 func req(handler http.Handler, method, path string) *httptest.ResponseRecorder {
 	r, _ := http.NewRequest(method, path, nil)
 	rw := httptest.NewRecorder()

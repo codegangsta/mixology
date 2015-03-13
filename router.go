@@ -30,6 +30,8 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+
+	http.NotFound(rw, req)
 }
 
 func (r *Router) Get(path string, handler http.HandlerFunc) {
