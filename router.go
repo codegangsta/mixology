@@ -10,6 +10,8 @@ import (
 type Router struct {
 	routes []*Route
 	groups []group
+
+	NotFound http.HandlerFunc
 }
 
 type Middleware interface {
@@ -17,7 +19,7 @@ type Middleware interface {
 }
 
 func New() *Router {
-	return &Router{}
+	return &Router{NotFound: http.NotFound}
 }
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -31,7 +33,7 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	http.NotFound(rw, req)
+	r.NotFound(rw, req)
 }
 
 func (r *Router) Get(path string, handler http.HandlerFunc) {

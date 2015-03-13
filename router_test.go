@@ -123,10 +123,19 @@ func TestGroupMiddleware(t *testing.T) {
 
 func TestDefaultNotFound(t *testing.T) {
 	m := mix.New()
-
 	res := req(m, "GET", "/not-here")
 	equals(t, 404, res.Code)
 	equals(t, "404 page not found\n", res.Body.String())
+}
+
+func TestCustomNotFound(t *testing.T) {
+	m := mix.New()
+	m.NotFound = func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Custom Not Found!", 405)
+	}
+	res := req(m, "GET", "/not-here")
+	equals(t, 405, res.Code)
+	equals(t, "Custom Not Found!\n", res.Body.String())
 }
 
 func req(handler http.Handler, method, path string) *httptest.ResponseRecorder {
