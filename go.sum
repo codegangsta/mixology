@@ -1,6 +1,0 @@
-github.com/codegangsta/negroni v1.0.0 h1:+aYywywx4bnKXWvoWtRfJ91vC59NbEhEY03sZjQhbVY=
-github.com/codegangsta/negroni v1.0.0/go.mod h1:v0y3T5G7Y1UlFfyxFn/QLRU4a2EuNau2iZY63YTKWo0=
-github.com/nbio/httpcontext v0.0.0-20150224063329-d2f7bb023e6e h1:xvCbHT5A8/Tv15eVLfprM7nvLo/VQyx35X38RW86JVA=
-github.com/nbio/httpcontext v0.0.0-20150224063329-d2f7bb023e6e/go.mod h1:VR24Qkx+arWGHg5MtQ748xm0olYqbOiN35k1m1sUBaw=
-github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 h1:W6apQkHrMkS0Muv8G/TipAy/FJl/rCYT0+EuS8+Z0z4=
-github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32/go.mod h1:9wM+0iRr9ahx58uYLpLIr5fm8diHn0JbqRycJi6w0Ms=
