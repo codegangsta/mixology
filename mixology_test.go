@@ -1,16 +1,31 @@
-package mixology_test
+package mixology
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
-
-	"github.com/codegangsta/mixology"
 )
 
-func ExampleMix(t *testing.T) {
+func TestBasicMiddleware(t *testing.T) {
+	result := []string{}
+	response := httptest.NewRecorder()
+
 	// create a new mixology
-	m := mixology.New()
+	m := New()
 
-	equals(t, 1, 1)
+	m.Use(func(rw http.ResponseWriter, r *http.Request) {
+		result = append(result, "One")
+	})
 
-	m.Run()
+	m.Use(func(rw http.ResponseWriter, r *http.Request) {
+		result = append(result, "Two")
+	})
+
+	m.Use(func(rw http.ResponseWriter, r *http.Request) {
+		result = append(result, "Three")
+	})
+
+	m.ServeHTTP(response, (*http.Request)(nil))
+
+	expect(t, result, []string{"One", "Two", "Three"})
 }

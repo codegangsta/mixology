@@ -1,4 +1,4 @@
-package mixology_test
+package mixology
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func ok(tb testing.TB, err error) {
 }
 
 // equals fails the test if exp is not equal to act.
-func equals(tb testing.TB, exp, act interface{}) {
+func expect(tb testing.TB, exp, act interface{}) {
 	if !reflect.DeepEqual(exp, act) {
 		_, file, line, _ := runtime.Caller(1)
 		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, exp, act)
