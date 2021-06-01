@@ -6,8 +6,11 @@ import (
 	"github.com/codegangsta/mixology"
 )
 
-func TestBasicMix(t *testing.T) {
+func ExampleMix(t *testing.T) {
+	// create a new mixology
 	m := mixology.New()
 
 	equals(t, 1, 1)
+
+	m.Run()
 }

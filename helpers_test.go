@@ -1,4 +1,4 @@
-package mixologist_test
+package mixology_test
 
 import (
 	"fmt"
